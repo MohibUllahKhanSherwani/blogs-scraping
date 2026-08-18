@@ -1,0 +1,55 @@
+{
+  "website_url": "https://northbaysolutions.com",
+  "discovered_sitemaps": [
+    "https://northbaysolutions.com/sitemap_index.xml",
+    "https://northbaysolutions.com/wp-sitemap.xml",
+    "https://northbaysolutions.com/sitemap.xml",
+    "https://northbaysolutions.com/sitemap-index.xml"
+  ],
+  "total_candidate_urls": 614,
+  "accepted_article_urls": 59,
+  "parsed_trafilatura_count": 3,
+  "parsed_newspaper_count": 0,
+  "parsed_bs4_count": 0,
+  "article_results": [
+    {
+      "url": "https://northbaysolutions.com/blog/transforming-airline-cx-with-managed-conversational-ai",
+      "trafilatura": {
+        "url": "https://northbaysolutions.com/blog/transforming-airline-cx-with-managed-conversational-ai",
+        "extractor_name": "Trafilatura",
+        "title": "Transforming Airline CX with Managed Conversational AI: A Future-Ready Approach to Passenger Experience and Efficiency",
+        "author": "NorthBay",
+        "date": "2025-06-20",
+        "content_length": 8298,
+        "content_preview": "The airline industry is under immense pressure to deliver seamless, efficient, and personalized customer experiences. According to McKinsey, 71% of consumers expect companies to deliver personalized i...",
+        "extra_metadata": {}
+      }
+    },
+    {
+      "url": "https://northbaysolutions.com/case-studies/data-warehouse-aws-redshift-remax-integration",
+      "trafilatura": {
+        "url": "https://northbaysolutions.com/case-studies/data-warehouse-aws-redshift-remax-integration",
+        "extractor_name": "Trafilatura",
+        "title": "Amazon Redshift Data Warehouse for Enterprise-wide Reporting",
+        "author": "Burhan Ali",
+        "date": "2022-02-22",
+        "content_length": 4235,
+        "content_preview": "Meet Our Customer\nRE/MAX INTEGRA is a family-run, Toronto-based business that represents approximately 30% of the RE/MAX worldwide network. With a team of more than 29,000 sales associates, they opera...",
+        "extra_metadata": {}
+      }
+    },
+    {
+      "url": "https://northbaysolutions.com/northbay-accelerate/data-modernization-accelerator",
+      "trafilatura": {
+        "url": "https://northbaysolutions.com/northbay-accelerate/data-modernization-accelerator",
+        "extractor_name": "Trafilatura",
+        "title": "Data Modernization Accelerator",
+        "author": "NorthBay",
+        "date": "2026-01-22",
+        "content_length": 1271,
+        "content_preview": "Accelerate Your Path to Modern Data\nModernization isn’t just about migration, it’s about building a future-ready data foundation.\nWith NorthBay’s Data Modernization Accelerator, you’ll leverage AWS-na...",
+        "extra_metadata": {}
+      }
+    }
+  ]
+}

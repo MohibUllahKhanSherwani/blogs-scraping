@@ -1,0 +1,12 @@
+{
+  "website_url": "https://nextbridge.com",
+  "discovered_sitemaps": [
+    "https://nextbridge.com/sitemap_index.xml"
+  ],
+  "total_candidate_urls": 0,
+  "accepted_article_urls": 0,
+  "parsed_trafilatura_count": 0,
+  "parsed_newspaper_count": 0,
+  "parsed_bs4_count": 0,
+  "article_results": []
+}
