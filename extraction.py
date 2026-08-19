@@ -36,9 +36,19 @@ class ContentExtractor:
     def extract_all(self, url: str) -> dict:
         results = {}
         try:
-            resp = httpx.get(url, headers=self.headers, timeout=10.0, follow_redirects=True)
-            if resp.status_code == 200:
-                html = resp.text
+            html = None
+            try:
+                resp = httpx.get(url, headers=self.headers, timeout=10.0, follow_redirects=True)
+                if resp.status_code == 200 and "Just a moment..." not in resp.text:
+                    html = resp.text
+            except Exception:
+                pass
+                
+            # WAF/Cloudflare fallback for article fetching
+            if not html:
+                html = trafilatura.fetch_url(url)
+                
+            if html:
                 results["trafilatura"] = self.extract_trafilatura(html, url)
         except Exception as e:
             results["error"] = str(e)

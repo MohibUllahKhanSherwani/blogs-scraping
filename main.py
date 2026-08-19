@@ -92,7 +92,7 @@ def print_summary_report(reports: List[WebsiteReport]):
 def main():
     target_websites = [
         ("https://nextbridge.com/", "nextbridge.json"),
-        ("https://northbaysolutions.com/", "northbay.json")
+        ("https://northbaysolutions.com/", "northbay.json"),
     ]
     
     reports = []

@@ -52,7 +52,7 @@ def score_url(url: str, config: RuleConfig) -> int:
     score = 0
     url_lower = url.lower()
     
-    # Bonus for path keywords
+    # Bonus for explicit candidate path keywords (/blog/, /insights/, /news/, etc.)
     for keyword in config.candidate_keywords:
         pattern = rf"/{re.escape(keyword)}(/|$)"
         if re.search(pattern, url_lower):
@@ -65,8 +65,9 @@ def score_url(url: str, config: RuleConfig) -> int:
     
     if parts:
         last_part = parts[-1]
-        # Slug detector: contains multiple hyphens and no file extension
-        if "-" in last_part and len(last_part.split("-")) >= 3:
+        # Slug detector: contains hyphens and no file extension
+        hyphen_count = last_part.count("-")
+        if hyphen_count >= 2 and not any(last_part.endswith(ext) for ext in config.ignored_extensions):
             score += 2
             
     return score

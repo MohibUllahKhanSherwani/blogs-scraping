@@ -1,17 +1,32 @@
+import html
 import re
+import warnings
 import xml.etree.ElementTree as ET
 from typing import List, Set, Optional
 from urllib.parse import urljoin, urlparse, unquote
 
 import httpx
-from bs4 import BeautifulSoup
+import trafilatura
+from bs4 import BeautifulSoup, XMLParsedAsHTMLWarning
 from rules import RuleConfig, is_excluded_url, score_url
+
+warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
 
 class DiscoveryEngine:
     def __init__(self, config: Optional[RuleConfig] = None):
         self.config = config or RuleConfig()
         self.headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, Gecko) Chrome/120.0.0.0 Safari/537.36"
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, Gecko) Chrome/122.0.0.0 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Sec-Ch-Ua": '"Chromium";v="122", "Not(A:Brand";v="24", "Google Chrome";v="122"',
+            "Sec-Ch-Ua-Mobile": "?0",
+            "Sec-Ch-Ua-Platform": '"Windows"',
+            "Sec-Fetch-Dest": "document",
+            "Sec-Fetch-Mode": "navigate",
+            "Sec-Fetch-Site": "none",
+            "Sec-Fetch-User": "?1",
+            "Upgrade-Insecure-Requests": "1"
         }
 
     def normalize_url(self, url: str) -> str:
@@ -67,26 +82,54 @@ class DiscoveryEngine:
 
         urls = []
         try:
-            resp = httpx.get(sitemap_url, headers=self.headers, timeout=12.0, follow_redirects=True)
-            if resp.status_code != 200:
-                return []
+            content = None
+            try:
+                resp = httpx.get(
+                    sitemap_url, 
+                    headers=self.headers, 
+                    timeout=12.0, 
+                    follow_redirects=True
+                )
+                if resp.status_code == 200 and "Just a moment..." not in resp.text:
+                    content = resp.text
+            except Exception:
+                pass
                 
-            content = resp.content
-            # Use BeautifulSoup with xml parser to cleanly extract all <loc> values
-            soup = BeautifulSoup(content, "xml")
-            loc_tags = soup.find_all("loc")
+            # Cloudflare / WAF fallback: Use Trafilatura's internal fetch module if httpx is blocked
+            if not content:
+                print(f"  [DEBUG] httpx blocked/failed on {sitemap_url}, using Trafilatura fetch fallback...")
+                content = trafilatura.fetch_url(sitemap_url)
+                
+            if not content:
+                return []
             
-            for loc in loc_tags:
-                if loc.text:
-                    loc_str = loc.text.strip()
-                    # Check if loc points to another sitemap XML
-                    if loc_str.endswith('.xml') or 'sitemap' in loc_str:
-                        if loc_str not in visited_sitemaps:
-                            sub_urls = self.parse_sitemap_urls(loc_str, visited_sitemaps)
-                            urls.extend(sub_urls)
-                    else:
-                        urls.append(loc_str)
-        except Exception:
+            # 1. Try XML <loc> tag extraction
+            raw_loc_matches = re.findall(r'<loc>(.*?)</loc>', content, re.IGNORECASE | re.DOTALL)
+            loc_matches = [html.unescape(m.strip()) for m in raw_loc_matches if m.strip()]
+            
+            # 2. Fallback: Parse HTML <a> tags if XML <loc> tags are absent
+            if not loc_matches:
+                soup = BeautifulSoup(content, "html.parser")
+                a_tags = soup.find_all("a", href=True)
+                for a in a_tags:
+                    href = a["href"].strip()
+                    if href.startswith("http") or href.startswith("/"):
+                        full_url = urljoin(sitemap_url, href)
+                        loc_matches.append(full_url)
+                        
+            print(f"  [DEBUG] Fetching sitemap: {sitemap_url} -> Found {len(loc_matches)} URL match(es)")
+            
+            for loc_str in loc_matches:
+                is_sub_sitemap = loc_str.endswith('.xml') or '-sitemap' in loc_str.lower() or 'sitemap_' in loc_str.lower()
+                
+                if is_sub_sitemap and loc_str != sitemap_url:
+                    if loc_str not in visited_sitemaps:
+                        sub_urls = self.parse_sitemap_urls(loc_str, visited_sitemaps)
+                        urls.extend(sub_urls)
+                else:
+                    urls.append(loc_str)
+        except Exception as e:
+            print(f"  [DEBUG] Error fetching {sitemap_url}: {e}")
             pass
             
         return list(set(urls))
