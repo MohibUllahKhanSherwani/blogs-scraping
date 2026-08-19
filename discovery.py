@@ -120,7 +120,20 @@ class DiscoveryEngine:
             print(f"  [DEBUG] Fetching sitemap: {sitemap_url} -> Found {len(loc_matches)} URL match(es)")
             
             for loc_str in loc_matches:
+                # Ensure we only follow sitemaps within the SAME target website domain
+                parsed_loc = urlparse(loc_str)
+                base_netloc = urlparse(sitemap_url).netloc
+                
+                # Skip external links (this was an issue in wordpress.dev (github.com like github.com or third-party references)
+                if parsed_loc.netloc and parsed_loc.netloc != base_netloc:
+                    continue
+                    
                 is_sub_sitemap = loc_str.endswith('.xml') or '-sitemap' in loc_str.lower() or 'sitemap_' in loc_str.lower()
+                
+                # Skip image/video/author/tag sitemaps to prevent crawling thousands of asset XMLs (this was an issue in omgubuntu.com)
+                loc_lower = loc_str.lower()
+                if any(ignored in loc_lower for ignored in ['image-sitemap', 'video-sitemap', 'author-sitemap', 'tag-sitemap', 'user-sitemap']):
+                    continue
                 
                 if is_sub_sitemap and loc_str != sitemap_url:
                     if loc_str not in visited_sitemaps:
